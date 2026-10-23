@@ -2225,6 +2225,9 @@ module modstartup
       read (ifinput) (((ql0h(i, j, k), i=ib - ih, ie + ih), j=jb - jh, je + jh), k=kb, ke + kh)
       read (ifinput) timee, dt
       close (ifinput)
+      ! statsfix 2026-10-20: pres0(:,:,ke+kh) is never solved for; restart files written before the fix may hold
+      ! the sum of p's unwritten ghost level there. Reset it to the value a clean run has (0).
+      pres0(:, :, ke + kh) = 0.
       !write (6, *) 'finished loading ', name
 
       if ((nsv > 0) .and. (lreadscal)) then

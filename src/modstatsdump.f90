@@ -778,6 +778,15 @@ contains
 
       tstatsdumppi = 1./tstatsdumpp
 
+      ! statsfix 2026-10-20: these work arrays are allocated on every call but only partly written below
+      ! (thlsgs, qtsgs, wsgs, sv1k and sv1sgs-sv4sgs for k = kb..ke only, usgs/vsgs/wsgs not in the x/y halos,
+      ! PSS only where lchem applies), while thlsgs (avexy_ibm) and sv1k, sv*sgs, PSS (time averages) are read
+      ! over kb:ke+kh. Reused heap memory can hold a signalling NaN there, which aborts the run under
+      ! floating-point traps (CCE -K trap=inv, gfortran -ffpe-trap=invalid). Zero them before they are filled;
+      ! every value that is written or used for k = kb..ke stays the same.
+      thlsgs = 0.; qtsgs = 0.; usgs = 0.; vsgs = 0.; wsgs = 0.
+      sv1k = 0.; sv1sgs = 0.; sv2sgs = 0.; sv3sgs = 0.; sv4sgs = 0.; PSS = 0.
+
       !> Perform required interpolations for flux calculations
       !  tg3315 for non-equidistant x and z-grids this needs to change
       do k=kb,ke+kh

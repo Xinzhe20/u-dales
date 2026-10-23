@@ -414,6 +414,10 @@ contains
 
     end if ! ipoiss
 
+    ! statsfix 2026-10-20: p (allocated above) is written by the solver and bcp only for k = kb..ke, but tderive
+    ! adds p(:,:,kb-1:ke+1) to pres0 every substep; zero it once so its k ghost levels stay 0 instead of heap garbage
+    p = 0.
+
   end subroutine initpois
 
   subroutine poisson
