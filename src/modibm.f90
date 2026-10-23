@@ -1556,23 +1556,27 @@ module modibm
 
        ! Sensible heat
        if (ltempeq) then
-         if (iwalltemp == 1) then ! probably remove this eventually, only relevant to grid-aligned facets
-           !if     (all(abs(norm - xhat) < eps1)) then
-           if     (is_equal(norm, xhat)) then
-             flux = bctfxp
-           !elseif (all(abs(norm + xhat) < eps1)) then
-           elseif (is_equal(norm, -xhat)) then
-             flux = bctfxm
-           !elseif (all(abs(norm - yhat) < eps1)) then
-           elseif (is_equal(norm, yhat)) then
-             flux = bctfyp
-           !elseif (all(abs(norm + yhat) < eps1)) then
-           elseif (is_equal(norm, -yhat)) then
-             flux = bctfym
-           !elseif (all(abs(norm - zhat) < eps1)) then
-           elseif (is_equal(norm, zhat)) then
-             flux = bctfz
-           end if
+         if (iwalltemp == 1) then ! prescribed flux chosen by the dominant normal component (2026-10-17): no exact axis match needed, downward faces get 0
+           select case (maxloc(abs(norm), 1))
+           case (1)
+             if (norm(1) > 0.) then
+               flux = bctfxp
+             else
+               flux = bctfxm
+             end if
+           case (2)
+             if (norm(2) > 0.) then
+               flux = bctfyp
+             else
+               flux = bctfym
+             end if
+           case default
+             if (norm(3) > 0.) then
+               flux = bctfz
+             else
+               flux = 0.
+             end if
+           end select
 
          elseif (iwalltemp == 2) then
            call heat_transfer_coef_flux(utan, dist, facz0(fac), facz0h(fac), Tair, facT(fac, 1), cth, flux, htc)
@@ -1595,18 +1599,27 @@ module modibm
 
        ! Latent heat
        if (lmoist .and. faclGR(fac)) then
-         if (iwallmoist == 1) then ! probably remove this eventually, only relevant to grid-aligned facets
-           if     (is_equal(norm, xhat)) then
-             flux = bcqfxp
-           elseif (is_equal(norm, -xhat)) then
-             flux = bcqfxm
-           elseif (is_equal(norm, yhat)) then
-             flux = bcqfyp
-           elseif (is_equal(norm, -yhat)) then
-             flux = bcqfym
-           elseif (is_equal(norm, zhat)) then
-             flux = bcqfz
-           end if
+         if (iwallmoist == 1) then ! prescribed flux chosen by the dominant normal component (2026-10-17): no exact axis match needed, downward faces get 0
+           select case (maxloc(abs(norm), 1))
+           case (1)
+             if (norm(1) > 0.) then
+               flux = bcqfxp
+             else
+               flux = bcqfxm
+             end if
+           case (2)
+             if (norm(2) > 0.) then
+               flux = bcqfyp
+             else
+               flux = bcqfym
+             end if
+           case default
+             if (norm(3) > 0.) then
+               flux = bcqfz
+             else
+               flux = 0.
+             end if
+           end select
 
          elseif (iwallmoist == 2) then
             if (abs(htc*abs(utan)) > 0.) then
